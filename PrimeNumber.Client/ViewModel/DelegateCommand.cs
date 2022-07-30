@@ -3,7 +3,7 @@ using System.Windows.Input;
 
 namespace PrimeNumber.Client.ViewModel;
 
-internal class DelegateCommand : ICommand
+public class DelegateCommand : ICommand
 {
     private Action execute;
     private Func<bool>? canExecute;
@@ -34,7 +34,7 @@ internal class DelegateCommand : ICommand
         execute();
     }
 
-    public void OnCanExecuteChanged()
+    internal void OnCanExecuteChanged()
     {
         CanExecuteChanged?.Invoke(this, EventArgs.Empty);
     }

@@ -9,8 +9,8 @@
     xmlns:view="clr-namespace:PrimeNumber.Client.View"
     mc:Ignorable="d"
     Title="Prime Dispenser"
-    Height="298" Width="375"
-    MinHeight="298" MinWidth="300">
+    Height="440" Width="395"
+    MinHeight="440" MinWidth="325">
     
     <Window.DataContext>
         <vm:PrimeCalculatorViewModel/>
@@ -35,7 +35,8 @@
             <RowDefinition Height="Auto"/> <!-- input and output -->
             <RowDefinition Height="Auto"/> <!-- invocation modes, first portion of status/stats -->
             <RowDefinition Height="Auto"/> <!-- button/progress -->
-            <RowDefinition Height="Auto"/> <!-- remainder space -->
+            <RowDefinition Height="Auto"/> <!-- pointless animation -->
+            <RowDefinition Height="*"/> <!-- remainder space -->
         </Grid.RowDefinitions>
         
         <Grid.ColumnDefinitions>
@@ -47,14 +48,14 @@
         <TextBox
             Grid.Row="0"
             Grid.ColumnSpan="2"
-            Text="{Binding InputOutput}"
+            Text="{Binding InputOutput, UpdateSourceTrigger=PropertyChanged}"
             FontSize="24"
             HorizontalAlignment="Stretch"
             Margin="10"
             Padding="3"/>
 
         <StackPanel Grid.Row="1" Margin="10">
-            <TextBlock Text="Invocation mode:"/>
+            <TextBlock Text="Invocation mode:" Margin="0,0,0,3"/>
             <ListBox
                 ItemsSource="{Binding Path=ConcurrencyMode, Converter={vc:EnumToCollectionConverter}, Mode=OneTime}"
                 SelectedValuePath="Value"
@@ -87,7 +88,14 @@
             TextWrapping="Wrap"
             FontStyle="Italic"
             Text="{Binding Status}"
-            Margin="10"/>
+            Margin="18,10,10,10"/>
+
+        <view:PointlessAnimation
+            Margin="20,20,20,40"
+            Grid.Row="3"
+            Grid.RowSpan="2"
+            Grid.ColumnSpan="3"
+            VerticalAlignment="Bottom"/>
 
     </Grid>
 </Window>

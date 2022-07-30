@@ -1,37 +1,24 @@
 ﻿using PrimeNumber.Client.Model;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
+using System.Threading;
+using System.Windows.Threading;
 
 namespace PrimeNumber.Client.ViewModel;
 
-public class PrimeCalculatorViewModel : INotifyPropertyChanged
+public class PrimeCalculatorViewModel : ViewModelBase
 {
-    private readonly PrimeNetClient _primeNetworkClient;
-    private readonly DelegateCommand _nextPrimeCommand;
-    private string _inputOutput = "10000000";
-    private string _status = "";
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
     public PrimeCalculatorViewModel()
     {
-        _primeNetworkClient = new PrimeNetClient();
-
-        _nextPrimeCommand = new DelegateCommand(
-            ComputeNextPrime,
-            () => !IsBusy);
     }
 
-    public string InputOutput
+    #region properties
+
+    /// <summary>
+    /// Gets or sets the input/output string in a way that doesn't
+    /// also clear the value of <see cref="Status"/>.
+    /// </summary>
+    private string InputOutputInternal
     {
         get => _inputOutput;
         set
@@ -40,6 +27,25 @@ public class PrimeCalculatorViewModel : INotifyPropertyChanged
             {
                 _inputOutput = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(InputOutput));
+            }
+        }
+    }
+    private string _inputOutput = "10000000";
+
+    public string InputOutput
+    {
+        get => InputOutputInternal;
+        set
+        {
+            if (!string.Equals(_inputOutput, value))
+            {
+                InputOutputInternal = value;
+
+                // clear our last status when the user makes
+                // any change to the input string, since that
+                // status no longer relates to their input.
+                Status = string.Empty;
             }
         }
     }
@@ -55,7 +61,8 @@ public class PrimeCalculatorViewModel : INotifyPropertyChanged
                 OnPropertyChanged();
             }
         }
-    } private ConcurrencyMode _concurrencyMode = ConcurrencyMode.Blocking;
+    }
+    private ConcurrencyMode _concurrencyMode = ConcurrencyMode.Blocking;
 
     public string Status
     {
@@ -69,13 +76,22 @@ public class PrimeCalculatorViewModel : INotifyPropertyChanged
             }
         }
     }
+    private string _status = "";
 
-    public ICommand NextPrimeCommand => _nextPrimeCommand;
-
-    protected void OnPropertyChanged([CallerMemberName] string? name = null)
+    public DelegateCommand NextPrimeCommand
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        get
+        {
+            if (_nextPrimeCommand == null)
+            {
+                _nextPrimeCommand = new DelegateCommand(
+                    ComputeNextPrime,
+                    () => !IsBusy);
+            }
+            return _nextPrimeCommand;
+        }
     }
+    private DelegateCommand? _nextPrimeCommand;
 
     public bool IsBusy
     {
@@ -89,51 +105,171 @@ public class PrimeCalculatorViewModel : INotifyPropertyChanged
             {
                 _isBusy = value;
                 OnPropertyChanged();
-                _nextPrimeCommand.OnCanExecuteChanged();
+                NextPrimeCommand.OnCanExecuteChanged();
             }
         }
     }
     private bool _isBusy;
 
+    #endregion properties
+
     private void ComputeNextPrime()
     {
-        switch (ConcurrencyMode)
+        if (ConcurrencyMode == ConcurrencyMode.Threading)
         {
-            case ConcurrencyMode.AsyncAndAwait:
-                ComputeNextPrimeAsync();
-                break;
-            case ConcurrencyMode.Blocking:
-                throw new NotImplementedException();
-                break;
-            case ConcurrencyMode.Threading:
-                throw new NotImplementedException();
-                break;
+            // managing a threaded approach requires us to break up
+            // our UI work into multiple methods, and we must use
+            // some sort of signaling between threads
+            ComputeNextPrimeThreaded();
+        }
+        else
+        {
+            // blocking and async/await approaches LOOK very similar
+            // but will behave very differently at runtime, due to
+            // compiler rewriting of async/await calls.
+            ComputeNextPrimeNonThreaded();
         }
     }
 
-    private async void ComputeNextPrimeAsync()
+
+    #region threaded approach
+
+    private Stopwatch? threadedApproachTimer;
+
+    private void ComputeNextPrimeThreaded()
     {
-        Status = "";
+        // we can reuse the blocking client, but we'll call it
+        // from a separate thread so that the UI doesn't become
+        // unresponsive.
+        
         IsBusy = true;
 
         try
         {
-            int n = int.Parse(InputOutput);
+            long n = long.Parse(InputOutputInternal);
 
             Status = "Processing...";
+            threadedApproachTimer = Stopwatch.StartNew();
 
+            var client = new PrimeNetClientBlocking();
+            var uiDispatcher = Dispatcher.CurrentDispatcher;
+
+            Thread t = new Thread(() =>
+            {
+                // the work in THIS delegate's scope is performed in a
+                // separate thread -- we must not cause any UI method
+                // calls from that other thread, or we'll have exceptions
+                // or unexpected UI behavior.
+
+                #region work performed in separate thread
+                long p;
+                try
+                {
+                    p = client.NextPrime(n);
+
+                    // return the asynchronously computed result back into
+                    // the UI thread:
+                    DispatchSuccessResponse(uiDispatcher, p);
+                }
+                catch (Exception e)
+                {
+                    DispatchErrorResponse(uiDispatcher, e.Message);
+                    return;
+                }
+
+                #endregion work performed in separate thread
+            })
+            {
+                IsBackground = true,
+                Name = "prime network client"
+            };
+
+            // ask the runtime to start the new thread
+            t.Start();
+
+            // we've reached the end of the method running in the UI
+            // thread, so we're now returning control to the UI
+            // dispatcher. until we hear back via
+            // DispatchPrimeNumberResponse(), we must leave IsBusy
+            // set to true.
+        }
+        catch (Exception e)
+        {
+            Status = $"Error:\n{e.Message}";
+
+            // if an exception happens, be sure to reset busy status
+            // so that the user is informed and may try again.
+            IsBusy = false;
+        }
+    }
+
+    private void DispatchSuccessResponse(Dispatcher dispatcher, long p)
+    {
+        // this method may be invoked from any thread.
+        //
+        // view model properties must be set from within the
+        // Dispatcher (UI) thread because UI controls may be
+        // bound to them.
+
+        dispatcher.BeginInvoke(() =>
+        {
+            threadedApproachTimer?.Stop();
+
+            InputOutputInternal = p.ToString();
+            IsBusy = false;
+            Status = $"Elapsed time:\n{threadedApproachTimer?.Elapsed}";
+        });
+    }
+
+    private void DispatchErrorResponse(Dispatcher dispatcher, string message)
+    {
+        // this method may be invoked from any thread.
+        //
+        // view model properties must be set from within the
+        // Dispatcher (UI) thread because UI controls may be
+        // bound to them.
+        dispatcher.BeginInvoke(() =>
+        {
+            IsBusy = false;
+            Status = $"Error:\n{message}";
+        });
+    }
+
+    #endregion threaded approach
+
+
+    #region non-threaded approach
+
+    private async void ComputeNextPrimeNonThreaded()
+    {
+        long p;
+
+        IsBusy = true;
+
+        try
+        {
+            long n = long.Parse(InputOutputInternal);
+
+            Status = "Processing...";
             var stopwatch = Stopwatch.StartNew();
 
-            int p = await _primeNetworkClient.NextPrimeAsync(n);
+            if (ConcurrencyMode == ConcurrencyMode.AsyncAndAwait)
+            {
+                p = await new PrimeNetClientAsync().NextPrimeAsync(n);
+            }
+            else // Blocking
+            {
+                p = new PrimeNetClientBlocking().NextPrime(n);
+            }
 
             stopwatch.Stop();
 
-            InputOutput = p.ToString();
+            InputOutputInternal = p.ToString();
             Status = $"Elapsed time:\n{stopwatch.Elapsed}";
         }
         catch (Exception e)
         {
-            Status = e.Message;
+            Status = $"Error:\n{e.Message}";
         }
         finally
         {
@@ -141,34 +277,6 @@ public class PrimeCalculatorViewModel : INotifyPropertyChanged
         }
     }
 
-    private void ComputeNextPrimeBlocking()
-    {
-        Status = "";
-        IsBusy = true;
-
-        try
-        {
-            int n = int.Parse(InputOutput);
-
-            Status = "Processing...";
-
-            var stopwatch = Stopwatch.StartNew();
-
-            int p = _primeNetworkClient.NextPrime(n);
-
-            stopwatch.Stop();
-
-            InputOutput = p.ToString();
-            Status = $"Elapsed time:\n{stopwatch.Elapsed}";
-        }
-        catch (Exception e)
-        {
-            Status = e.Message;
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
+    #endregion non-threaded approach
 
 }

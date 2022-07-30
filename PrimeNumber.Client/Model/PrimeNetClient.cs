@@ -1,38 +1,28 @@
 ﻿using System;
-using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace PrimeNumber.Client.Model;
 
-internal class PrimeNetClient
+internal abstract class PrimeNetClient : IDisposable
 {
-    HttpClient _client;
+    protected HttpClient Client;
+
+    protected static readonly Uri BaseUri =
+        new Uri("http://localhost:31147/", UriKind.Absolute);
 
     internal PrimeNetClient()
     {
-        _client = new HttpClient();
+        Client = new HttpClient();
     }
 
-    internal async Task<int> NextPrimeAsync(int n)
+    public void Dispose()
     {
-        var response = await _client.GetAsync(
-            $"http://localhost:31147/{n}",
-            HttpCompletionOption.ResponseContentRead);
-
-        string responseBody =
-            await response.Content.ReadAsStringAsync();
-
-        return int.Parse(responseBody);
+        Client.Dispose();
     }
 
-    internal int NextPrime(int n)
+    protected Uri GetRequestUri(long n)
     {
-        Task<int> task = NextPrimeAsync(n);
-
-        task.Start();
-
-        return task.Result;
+        return new Uri(BaseUri, n.ToString());
     }
 
 }
