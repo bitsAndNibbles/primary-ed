@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/client/client.csproj",
+                "${workspaceFolder}/PrimeNumber.Client/PrimeNumber.Client.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/client/client.csproj",
+                "${workspaceFolder}/PrimeNumber.Client/PrimeNumber.Client.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/client/client.csproj"
+                "${workspaceFolder}/PrimeNumber.Client/PrimeNumber.Client.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
