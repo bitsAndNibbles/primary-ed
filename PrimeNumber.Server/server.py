@@ -1,20 +1,33 @@
 #!/bin/env python3
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import logging
+import sys
 
 from prime import next_prime
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    stream = sys.stdout,
+    format='%(asctime)s %(message)s')
+LOGGER=logging.getLogger("prime-server")
 
 class RequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
 
         # expect the path to be "/n" where n is an integer input
         n = int(self.path[1:])
 
+        LOGGER.info(f"received request for prime after {n}")
+
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+
         prime = next_prime(n)
+
+        LOGGER.info(f"prime after {n} is {prime}")
 
         # write our response to the output stream
         self.wfile.write(bytes(f"{prime}", "utf-8"))
@@ -27,7 +40,7 @@ if __name__ == '__main__':
 
     server = HTTPServer((address, port), RequestHandler)
 
-    print(f"listening on {address}:{port}")
+    LOGGER.info(f"listening on {address}:{port}")
 
     try:
         server.serve_forever()
