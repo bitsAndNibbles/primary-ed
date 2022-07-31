@@ -3,24 +3,14 @@ using System.Net.Http;
 
 namespace PrimeNumber.Client.Model;
 
-internal abstract class PrimeNetClient : IDisposable
+internal abstract class PrimeNetClient
 {
-    protected HttpClient Client;
+    protected static HttpClient Client = new HttpClient();
 
     protected static readonly Uri BaseUri =
-        new Uri("http://localhost:31147/", UriKind.Absolute);
+        new Uri("http://127.0.0.1:31147/", UriKind.Absolute);
 
-    internal PrimeNetClient()
-    {
-        Client = new HttpClient();
-    }
-
-    public void Dispose()
-    {
-        Client.Dispose();
-    }
-
-    protected Uri GetRequestUri(long n)
+    protected static Uri GetRequestUri(long n)
     {
         return new Uri(BaseUri, n.ToString());
     }
