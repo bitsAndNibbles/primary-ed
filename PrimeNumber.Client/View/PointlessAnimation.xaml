@@ -6,83 +6,93 @@
              xmlns:local="clr-namespace:PrimeNumber.Client.View"
              mc:Ignorable="d" 
              d:DesignHeight="100" d:DesignWidth="100">
-    <Grid>
+    
+    <Viewbox Stretch="Fill">
+        <Canvas Height="100" Width="100">
 
-        <Ellipse
-            Name="Ellipse1"
-            Width="60"
-            Height="60"
-            Stroke="OliveDrab"
-            StrokeThickness="2.5" Opacity="0.8">
-            <Ellipse.RenderTransform>
-                <RotateTransform Angle="0" CenterX="30" CenterY="40"/>
-            </Ellipse.RenderTransform>
+            <Ellipse
+                x:Name="Ellipse1"
+                Width="60"
+                Height="60"
+                Stroke="OliveDrab"
+                StrokeThickness="2.5" Opacity="0.8"
+                Canvas.Left="20" Canvas.Top="20">
+                <Ellipse.RenderTransform>
+                    <TransformGroup>
+                        <TranslateTransform X="-30" Y="-30"/>
+                        <ScaleTransform/>
+                        <RotateTransform Angle="0" CenterX="30" CenterY="40"/>
+                    </TransformGroup>
+                </Ellipse.RenderTransform>
 
-            <Ellipse.Triggers>
-                <EventTrigger RoutedEvent="Ellipse.Loaded">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation
-                                Storyboard.TargetName="Ellipse1"
-                                Storyboard.TargetProperty="Width"
-                                From="85.0" To="15.0" Duration="0:0:3"
-                                AutoReverse="True"
-                                RepeatBehavior="Forever" />
-                            <DoubleAnimation
-                                Storyboard.TargetName="Ellipse1"
-                                Storyboard.TargetProperty="RenderTransform.Angle"
-                                From="0.0" To="360.0" Duration="0:0:8"
-                                AutoReverse="False"
-                                RepeatBehavior="Forever"/>
-                            <DoubleAnimation
-                                Storyboard.TargetName="Ellipse1"
-                                Storyboard.TargetProperty="StrokeThickness"
-                                From="1.5" To="5.5" Duration="0:0:6"
-                                AutoReverse="True"
-                                RepeatBehavior="Forever" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Ellipse.Triggers>
-        </Ellipse>
+                <Ellipse.Triggers>
+                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(ScaleTransform.ScaleY)"
+                                    From="1.5" To="0.25" Duration="0:0:3"
+                                    AutoReverse="True"
+                                    RepeatBehavior="Forever" />
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[2].(RotateTransform.Angle)"
+                                    From="0.0" To="360.0" Duration="0:0:8"
+                                    AutoReverse="False"
+                                    RepeatBehavior="Forever"/>
+                                <DoubleAnimation
+                                    Storyboard.TargetName="Ellipse1"
+                                    Storyboard.TargetProperty="StrokeThickness"
+                                    From="1.5" To="5.5" Duration="0:0:6"
+                                    AutoReverse="True"
+                                    RepeatBehavior="Forever" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Ellipse.Triggers>
+            </Ellipse>
 
-        <Ellipse
-            Name="Ellipse2"
-            Width="60"
-            Height="60"
-            Stroke="DodgerBlue"
-            StrokeThickness="2.5" Opacity="0.8">
-            <Ellipse.RenderTransform>
-                <RotateTransform Angle="0" CenterX="30" CenterY="40"/>
-            </Ellipse.RenderTransform>
+            <Ellipse
+                x:Name="Ellipse2"
+                Width="60"
+                Height="60"
+                Stroke="DodgerBlue"
+                StrokeThickness="2.5" Opacity="0.8"
+                Canvas.Left="20" Canvas.Top="20">
+                <Ellipse.RenderTransform>
+                    <TransformGroup>
+                        <TranslateTransform X="30" Y="30"/>
+                        <ScaleTransform/>
+                        <RotateTransform Angle="0" CenterX="30" CenterY="40"/>
+                    </TransformGroup>
+                </Ellipse.RenderTransform>
 
-            <Ellipse.Triggers>
-                <EventTrigger RoutedEvent="Ellipse.Loaded">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation
-                                Storyboard.TargetName="Ellipse2"
-                                Storyboard.TargetProperty="Height"
-                                From="85.0" To="15.0" Duration="0:0:2.5"
-                                AutoReverse="True"
-                                RepeatBehavior="Forever" />
-                            <DoubleAnimation
-                                Storyboard.TargetName="Ellipse2"
-                                Storyboard.TargetProperty="RenderTransform.Angle"
-                                From="0.0" To="360.0" Duration="0:0:9"
-                                AutoReverse="False"
-                                RepeatBehavior="Forever"/>
-                            <DoubleAnimation
-                                Storyboard.TargetName="Ellipse2"
-                                Storyboard.TargetProperty="StrokeThickness"
-                                From="2.5" To="8.5" Duration="0:0:10"
-                                AutoReverse="True"
-                                RepeatBehavior="Forever" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Ellipse.Triggers>
-        </Ellipse>
+                <Ellipse.Triggers>
+                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(ScaleTransform.ScaleY)"
+                                    From="1.5" To="0.25" Duration="0:0:2.5"
+                                    AutoReverse="True"
+                                    RepeatBehavior="Forever" />
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[2].(RotateTransform.Angle)"
+                                    From="0.0" To="360.0" Duration="0:0:9"
+                                    AutoReverse="False"
+                                    RepeatBehavior="Forever"/>
+                                <DoubleAnimation
+                                    Storyboard.TargetName="Ellipse2"
+                                    Storyboard.TargetProperty="StrokeThickness"
+                                    From="2.5" To="8.5" Duration="0:0:10"
+                                    AutoReverse="True"
+                                    RepeatBehavior="Forever" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Ellipse.Triggers>
+            </Ellipse>
 
-    </Grid>
+        </Canvas>
+    </Viewbox>
+    
 </UserControl>
