@@ -31,7 +31,7 @@ public class PrimeCalculatorViewModel : ViewModelBase
             }
         }
     }
-    private string _inputOutput = "10000000";
+    private string _inputOutput = "100000000000000";
 
     public string InputOutput
     {

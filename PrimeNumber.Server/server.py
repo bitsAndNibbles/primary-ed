@@ -19,15 +19,15 @@ class RequestHandler(BaseHTTPRequestHandler):
         # expect the path to be "/n" where n is an integer input
         n = int(self.path[1:])
 
-        LOGGER.info(f"received request for prime after {n}")
-
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
 
+        LOGGER.info(f"finding next prime greater than {n}")
+
         prime = next_prime(n)
 
-        LOGGER.info(f"prime after {n} is {prime}")
+        LOGGER.info(f"{prime} follows {n}")
 
         # write our response to the output stream
         self.wfile.write(bytes(f"{prime}", "utf-8"))
