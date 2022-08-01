@@ -1,6 +1,7 @@
 ﻿using PrimeNumber.Client.Model;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Threading;
 using System.Windows.Threading;
 
@@ -10,6 +11,7 @@ public class PrimeCalculatorViewModel : ViewModelBase
 {
     public PrimeCalculatorViewModel()
     {
+        InputOutputInternal = "100000000000000";
     }
 
     #region properties
@@ -26,12 +28,20 @@ public class PrimeCalculatorViewModel : ViewModelBase
             if (!string.Equals(_inputOutput, value))
             {
                 _inputOutput = value;
+
+                if (long.TryParse(_inputOutput, out long longVal))
+                {
+                    // pretty print the long value to make it
+                    // easier for humans to decipher
+                    _inputOutput = longVal.ToString("N0");
+                }
+
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(InputOutput));
             }
         }
     }
-    private string _inputOutput = "100000000000000";
+    private string _inputOutput = string.Empty;
 
     public string InputOutput
     {
@@ -146,7 +156,7 @@ public class PrimeCalculatorViewModel : ViewModelBase
 
         try
         {
-            long n = long.Parse(InputOutputInternal);
+            long n = long.Parse(InputOutputInternal, NumberStyles.Number);
 
             Status = "Processing...";
             threadedApproachTimer = Stopwatch.StartNew();
@@ -248,7 +258,7 @@ public class PrimeCalculatorViewModel : ViewModelBase
 
         try
         {
-            long n = long.Parse(InputOutputInternal);
+            long n = long.Parse(InputOutputInternal, NumberStyles.Number);
 
             Status = "Processing...";
             var stopwatch = Stopwatch.StartNew();
