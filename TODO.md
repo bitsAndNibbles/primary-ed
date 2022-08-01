@@ -1,0 +1,4 @@
+- set up a self-hosted runner
+- configure build automation on GitHub to produce runnable dll/exe artifacts
+- support concurrent GET requests
+- move next-prime requests into /next-prime/n (instead of /n)
