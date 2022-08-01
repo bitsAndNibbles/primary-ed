@@ -10,19 +10,27 @@ internal class Program
     [STAThread]
     public static void Main(String[] args)
     {
-        var app = new Application()
-        {
-            ShutdownMode = ShutdownMode.OnMainWindowClose
-        };
+        // This is the main entry point of the application.
+        //
+        // For now, it's also serving as the Presenter, where
+        // we place code that connects up view-models to views
+        // and which causes views to open or close.
 
         var viewModelRoot = new PrimeCalculatorViewModel();
 
-        app.MainWindow = new MainWindow()
+        var app = new Application()
         {
-            DataContext = viewModelRoot
+            ShutdownMode = ShutdownMode.OnMainWindowClose,
+            MainWindow = new MainWindow()
+            {
+                DataContext = viewModelRoot
+            }
         };
 
-        app.MainWindow.Show();
+        // Start the application's Dispatcher event processor
+        // and then show its main window.
+        // 
+        // The Run method blocks until the application exits.
         app.Run(app.MainWindow);
     }
 }

@@ -11,7 +11,7 @@ public class PrimeCalculatorViewModel : ViewModelBase
 {
     public PrimeCalculatorViewModel()
     {
-        InputOutputInternal = "100000000000000";
+        InputOutputInternal = "100,000,000,000,000";
     }
 
     #region properties
@@ -172,14 +172,15 @@ public class PrimeCalculatorViewModel : ViewModelBase
                 // or unexpected UI behavior.
 
                 #region work performed in separate thread
-                long p;
+
+                long prime;
                 try
                 {
-                    p = client.NextPrime(n);
+                    prime = client.NextPrime(n);
 
                     // return the asynchronously computed result back into
                     // the UI thread:
-                    DispatchSuccessResponse(uiDispatcher, p);
+                    DispatchSuccessResponse(uiDispatcher, prime);
                 }
                 catch (Exception e)
                 {
@@ -213,7 +214,7 @@ public class PrimeCalculatorViewModel : ViewModelBase
         }
     }
 
-    private void DispatchSuccessResponse(Dispatcher dispatcher, long p)
+    private void DispatchSuccessResponse(Dispatcher dispatcher, long prime)
     {
         // this method may be invoked from any thread.
         //
@@ -225,7 +226,7 @@ public class PrimeCalculatorViewModel : ViewModelBase
         {
             threadedApproachTimer?.Stop();
 
-            InputOutputInternal = p.ToString();
+            InputOutputInternal = prime.ToString();
             IsBusy = false;
             Status = $"Elapsed time:\n{threadedApproachTimer?.Elapsed}";
         });
@@ -252,7 +253,7 @@ public class PrimeCalculatorViewModel : ViewModelBase
 
     private async void ComputeNextPrimeNonThreaded()
     {
-        long p;
+        long prime;
 
         IsBusy = true;
 
@@ -265,16 +266,16 @@ public class PrimeCalculatorViewModel : ViewModelBase
 
             if (ConcurrencyMode == ConcurrencyMode.AsyncAndAwait)
             {
-                p = await new PrimeNetClientAsync().NextPrimeAsync(n);
+                prime = await new PrimeNetClientAsync().NextPrimeAsync(n);
             }
             else // Blocking
             {
-                p = new PrimeNetClientBlocking().NextPrime(n);
+                prime = new PrimeNetClientBlocking().NextPrime(n);
             }
 
             stopwatch.Stop();
 
-            InputOutputInternal = p.ToString();
+            InputOutputInternal = prime.ToString();
             Status = $"Elapsed time:\n{stopwatch.Elapsed}";
         }
         catch (Exception e)
